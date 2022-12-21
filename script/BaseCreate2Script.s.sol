@@ -3,7 +3,11 @@ pragma solidity ^0.8.17;
 
 import {Script, console2, StdChains} from "forge-std/Script.sol";
 import {IImmutableCreate2Factory} from "src/lib/IImmutableCreate2Factory.sol";
-import {IMMUTABLE_CREATE2_ADDRESS, IMMUTABLE_CREATE2_RUNTIME_BYTECODE} from "src/lib/Constants.sol";
+import {
+    IMMUTABLE_CREATE2_ADDRESS,
+    IMMUTABLE_CREATE2_RUNTIME_BYTECODE,
+    MINIMUM_VIABLE_CONTRACT_CREATION_CODE
+} from "src/lib/Constants.sol";
 import {Create2AddressDeriver} from "src/lib/Create2AddressDeriver.sol";
 
 contract BaseCreate2Script is Script {
@@ -23,15 +27,14 @@ contract BaseCreate2Script is Script {
      * @dev Create a contract with a single STOP (00) opcode (stopcode), broadcasted by the specified broadcaster
      *      Useful for proxy contracts whose initial implementation must be a smart contract
      */
-    function _create2PlaceholderImplementation(address broadcaster) internal returns (address) {
-        bytes memory initCode = hex"600b5981380380925939f300";
-        return _create2IfNotDeployed(broadcaster, bytes32(0), initCode);
+    function _create2MinimumViableContract(address broadcaster) internal returns (address) {
+        return _immutableCreate2IfNotDeployed(broadcaster, bytes32(0), MINIMUM_VIABLE_CONTRACT_CREATION_CODE);
     }
 
     /**
      * @dev Create2 a contract using the ImmutableCreate2Factory, with the specified initCode, broadcast by the specified broadcaster
      */
-    function _create2IfNotDeployed(address broadcaster, bytes32 salt, bytes memory initCode)
+    function _immutableCreate2IfNotDeployed(address broadcaster, bytes32 salt, bytes memory initCode)
         internal
         returns (address)
     {
@@ -43,22 +46,36 @@ contract BaseCreate2Script is Script {
         return expectedAddress;
     }
 
+    /**
+     * @dev Create2 a contract using the Arachnid Create2 Factory, with the specified initCode, broadcast by the
+     *      specified broadcaster with the specified value
+     */
+    function _create2IfNotDeployed(address broadcaster, uint256 value, bytes32 salt, bytes memory initCode)
+        internal
+        returns (address)
+    {
+        address expectedAddress = Create2AddressDeriver.deriveCreate2Address(CREATE2_FACTORY, salt, initCode);
+        if (expectedAddress.code.length == 0) {
+            vm.broadcast(broadcaster);
+            (bool success,) = CREATE2_FACTORY.call{value: value}(bytes.concat(salt, initCode));
+            require(success, "Create2 failed");
+        }
+        return expectedAddress;
+    }
+
+    /**
+     * @dev Get the ImmutableCreate2Factory, etching the code if it is not deployed in a test or simulation
+     */
     function immutableCreate2() internal returns (IImmutableCreate2Factory) {
         // etch code at the address if we are simulating in a fork that does not have the factory deployed
         if (IMMUTABLE_CREATE2_ADDRESS.code.length == 0) {
             console2.log(
                 "ImmutableCreate2Factory not found; etching code for simulation. \nSee "
                 "https://github.com/ProjectOpenSea/seaport/blob/main/docs/Deployment.md#setting-up-factory-on-a-new-chain"
-                " for instructions on how to deploy to the ImmutableCreate2Factory to a new network."
+                " for instructions on how to deploy the ImmutableCreate2Factory to a new network."
             );
             vm.etch(IMMUTABLE_CREATE2_ADDRESS, IMMUTABLE_CREATE2_RUNTIME_BYTECODE);
         }
         return IImmutableCreate2Factory(IMMUTABLE_CREATE2_ADDRESS);
-    }
-
-    function _etchImmutableCreate2IfNotDeployed() internal {
-        if (IMMUTABLE_CREATE2_ADDRESS.code.length == 0) {
-            vm.etch(IMMUTABLE_CREATE2_ADDRESS, IMMUTABLE_CREATE2_RUNTIME_BYTECODE);
-        }
     }
 }

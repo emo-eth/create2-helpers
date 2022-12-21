@@ -2,9 +2,12 @@
 pragma solidity ^0.8.17;
 
 import {Test} from "forge-std/Test.sol";
+import {PublicBaseCreate2} from "test/helpers/PublicBaseCreate2.sol";
 
 contract BaseTest is Test {
-    function setUp() public virtual {}
+    PublicBaseCreate2 test;
 
-    function testThing() public {}
+    function setUp() public virtual {
+        test = new PublicBaseCreate2();
+    }
 }
