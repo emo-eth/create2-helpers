@@ -15,7 +15,7 @@ uint96 constant BYTES12_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFF;
 /**
  * @notice Creates an ImmutableSalt from an address and a bytes12.
  */
-function createImmutableSalt(address _deployer, bytes12 _salt) pure returns (ImmutableSalt immutableSalt) {
+function createImmutableSalt(address _deployer, uint96 _salt) pure returns (ImmutableSalt immutableSalt) {
     ///@solidity memory-safe-assembly
     assembly {
         immutableSalt := or(_salt, shl(DEPLOYER_SHIFT, _deployer))
@@ -45,8 +45,8 @@ function salt(ImmutableSalt immutableSalt) pure returns (bytes32 _salt) {
 /**
  * @notice Creates an ImmutableSalt but returns it as a bytes32 so it's easier to work with.
  */
-function createBytes32ImmutableSalt(address _deployer, bytes12 _salt) pure returns (bytes32) {
+function createBytes32ImmutableSalt(address _deployer, uint96 _salt) pure returns (bytes32) {
     return ImmutableSalt.unwrap(createImmutableSalt(_deployer, _salt));
 }
 
-using { deployer, salt } for ImmutableSalt global;
+using {deployer, salt} for ImmutableSalt global;
