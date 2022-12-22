@@ -14,6 +14,10 @@ contract BaseCreate2Script is Script {
     // to be set when running
     address deployer;
 
+    function setUp() public virtual {
+        deployer = vm.rememberKey(vm.envUint("DEPLOYER_PRIVATE_KEY"));
+    }
+
     /**
      * @notice Given a list of networks, fork each network and execute the deployLogic function for each one.
      */

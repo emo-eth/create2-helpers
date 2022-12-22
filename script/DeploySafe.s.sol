@@ -30,6 +30,7 @@ contract DeploySafe is BaseCreate2Script {
     }
 
     function run() public {
+        setUp();
         runOnNetworks(deploy, vm.envString("NETWORKS", ","));
     }
 
@@ -67,6 +68,7 @@ contract DeploySafe is BaseCreate2Script {
             params.setup.payment,
             params.setup.paymentReceiver
         );
+        vm.broadcast(deployer);
         address proxy = safeProxyFactory.createProxyWithNonce(safeSingletonAddress, initializer, params.saltNonce);
         console2.log("Safe deployed at: ", proxy);
     }
