@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {BaseCreate2Script, console2} from "./BaseCreate2Script.s.sol";
+import { BaseCreate2Script, console2 } from "./BaseCreate2Script.s.sol";
 import {
     SAFE_PROXY_FACTORY_1_3_0_CREATION_CODE,
     SAFE_PROXY_FACTORY_1_3_0_ADDRESS,
@@ -11,9 +11,9 @@ import {
     SAFE_COMPATIBILITY_FALLBACK_HANDLER_1_3_0_ADDRESS,
     SAFE_COMPATIBILITY_FALLBACK_HANDLER_1_3_0_CREATION_CODE
 } from "src/lib/Constants.sol";
-import {IGnosisSafeProxyFactory} from "src/helpers/interfaces/IGnosisSafeProxyFactory.sol";
-import {IGnosisSafe} from "src/helpers/interfaces/IGnosisSafe.sol";
-import {Create2AddressDeriver} from "src/lib/Create2AddressDeriver.sol";
+import { IGnosisSafeProxyFactory } from "src/helpers/interfaces/IGnosisSafeProxyFactory.sol";
+import { IGnosisSafe } from "src/helpers/interfaces/IGnosisSafe.sol";
+import { Create2AddressDeriver } from "src/lib/Create2AddressDeriver.sol";
 
 contract DeploySafe is BaseCreate2Script {
     struct SafeSetupParams {

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {BaseCreate2Script, console2} from "./BaseCreate2Script.s.sol";
-import {TimelockController} from "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-import {TransparentUpgradeableProxy} from
+import { BaseCreate2Script, console2 } from "./BaseCreate2Script.s.sol";
+import { TimelockController } from "openzeppelin-contracts/contracts/governance/TimelockController.sol";
+import { TransparentUpgradeableProxy } from
     "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract DeployTransparentUpgradeableProxy is BaseCreate2Script {

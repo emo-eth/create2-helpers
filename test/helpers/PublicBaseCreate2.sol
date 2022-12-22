@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {BaseCreate2Script} from "script/BaseCreate2Script.s.sol";
+import { BaseCreate2Script } from "script/BaseCreate2Script.s.sol";
 
 contract PublicBaseCreate2 is BaseCreate2Script {
     function create2PlaceholderImplementation() public returns (address) {
