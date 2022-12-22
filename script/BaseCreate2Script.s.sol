@@ -11,6 +11,9 @@ import {
 import {Create2AddressDeriver} from "src/lib/Create2AddressDeriver.sol";
 
 contract BaseCreate2Script is Script {
+    // to be set when running
+    address deployer;
+
     /**
      * @notice Given a list of networks, fork each network and execute the deployLogic function for each one.
      */
@@ -32,6 +35,13 @@ contract BaseCreate2Script is Script {
     }
 
     /**
+     * @dev Create2 a contract using the ImmutableCreate2Factory, with the specified initCode
+     */
+    function _immutableCreate2IfNotDeployed(bytes32 salt, bytes memory initCode) internal returns (address) {
+        return _immutableCreate2IfNotDeployed(msg.sender, salt, initCode);
+    }
+
+    /**
      * @dev Create2 a contract using the ImmutableCreate2Factory, with the specified initCode, broadcast by the specified broadcaster
      */
     function _immutableCreate2IfNotDeployed(address broadcaster, bytes32 salt, bytes memory initCode)
@@ -47,7 +57,25 @@ contract BaseCreate2Script is Script {
     }
 
     /**
-     * @dev Create2 a contract using the Arachnid Create2 Factory, with the specified initCode, broadcast by the
+     * @dev Create2 a contract using the Arachnid Create2 Factory, with the specified salt and initCode
+     */
+    function _create2IfNotDeployed(bytes32 salt, bytes memory initCode) internal returns (address) {
+        return _create2IfNotDeployed(msg.sender, 0, salt, initCode);
+    }
+
+    /**
+     * @dev Create2 a contract using the Arachnid Create2 Factory, with the specified salt and initCode, broadcast by the
+     *      specified broadcaster
+     */
+    function _create2IfNotDeployed(address broadcaster, bytes32 salt, bytes memory initCode)
+        internal
+        returns (address)
+    {
+        return _create2IfNotDeployed(broadcaster, 0, salt, initCode);
+    }
+
+    /**
+     * @dev Create2 a contract using the Arachnid Create2 Factory, with the specified salt and initCode, broadcast by the
      *      specified broadcaster with the specified value
      */
     function _create2IfNotDeployed(address broadcaster, uint256 value, bytes32 salt, bytes memory initCode)

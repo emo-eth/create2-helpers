@@ -7,10 +7,10 @@ library Create2AddressDeriver {
         pure
         returns (address)
     {
-        return deriveCreate2AddressViaHash(deployer, salt, keccak256(initCode));
+        return deriveCreate2AddressFromHash(deployer, salt, keccak256(initCode));
     }
 
-    function deriveCreate2AddressViaHash(address deployer, bytes32 salt, bytes32 initCodeHash)
+    function deriveCreate2AddressFromHash(address deployer, bytes32 salt, bytes32 initCodeHash)
         internal
         pure
         returns (address)
