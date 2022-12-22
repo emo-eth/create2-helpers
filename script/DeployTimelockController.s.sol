@@ -17,8 +17,8 @@ contract DeployTimelockController is BaseCreate2Script {
         runOnNetworks(deploy, vm.envString("NETWORKS", ","));
     }
 
-    function deploy() internal {
-        deployTimelock(
+    function deploy() public returns (address) {
+        return deployTimelock(
             TimelockConstructorParams({
                 minimumDelay: vm.envUint("TIMELOCK_MINIMUM_DELAY_DAYS") * 1 days,
                 proposers: vm.envAddress("TIMELOCK_PROPOSERS", ","),
@@ -28,12 +28,13 @@ contract DeployTimelockController is BaseCreate2Script {
         );
     }
 
-    function deployTimelock(TimelockConstructorParams memory params) internal {
+    function deployTimelock(TimelockConstructorParams memory params) internal returns (address) {
         bytes memory initCode = abi.encodePacked(
             type(TimelockController).creationCode,
             abi.encode(params.minimumDelay, params.proposers, params.executors, params.admin)
         );
         address timelock = _immutableCreate2IfNotDeployed(deployer, bytes32(0), initCode);
         console2.log("TimelockController deployed at", address(timelock));
+        return timelock;
     }
 }

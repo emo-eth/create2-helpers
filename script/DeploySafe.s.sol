@@ -5,6 +5,7 @@ import {BaseCreate2Script, console2} from "./BaseCreate2Script.s.sol";
 import {
     SAFE_PROXY_FACTORY_1_3_0_CREATION_CODE,
     SAFE_PROXY_FACTORY_1_3_0_ADDRESS,
+    SAFE_PROXY_1_3_0_CREATION_CODE,
     SAFE_1_3_0_ADDRESS,
     SAFE_1_3_0_CREATION_CODE,
     SAFE_COMPATIBILITY_FALLBACK_HANDLER_1_3_0_ADDRESS,
@@ -12,6 +13,7 @@ import {
 } from "src/lib/Constants.sol";
 import {IGnosisSafeProxyFactory} from "src/helpers/interfaces/IGnosisSafeProxyFactory.sol";
 import {IGnosisSafe} from "src/helpers/interfaces/IGnosisSafe.sol";
+import {Create2AddressDeriver} from "src/lib/Create2AddressDeriver.sol";
 
 contract DeploySafe is BaseCreate2Script {
     struct SafeSetupParams {
@@ -34,8 +36,8 @@ contract DeploySafe is BaseCreate2Script {
         runOnNetworks(deploy, vm.envString("NETWORKS", ","));
     }
 
-    function deploy() internal {
-        deploySafe(
+    function deploy() public returns (address) {
+        return deploySafe(
             SafeCreationParams({
                 setup: SafeSetupParams({
                     owners: vm.envAddress("SAFE_OWNERS", ","),
@@ -51,7 +53,7 @@ contract DeploySafe is BaseCreate2Script {
         );
     }
 
-    function deploySafe(SafeCreationParams memory params) internal {
+    function deploySafe(SafeCreationParams memory params) internal returns (address) {
         address safeSingletonAddress = _create2SafeSingletonIfNotDeployed();
         address safeCompatibilityFallbackAddress = _create2SafeCompatibilityFallbackAddressIfNotDeployed();
         address safeProxyFactoryAddress = _create2SafeProxyFactoryIfNotDeployed();
@@ -68,9 +70,53 @@ contract DeploySafe is BaseCreate2Script {
             params.setup.payment,
             params.setup.paymentReceiver
         );
-        vm.broadcast(deployer);
-        address proxy = safeProxyFactory.createProxyWithNonce(safeSingletonAddress, initializer, params.saltNonce);
-        console2.log("Safe deployed at: ", proxy);
+
+        address proxy;
+        // broadcast doesn't play well with try/catch
+        uint256 snap = vm.snapshot();
+        // broadcasting doesn't play with with try/catch, so try and then broadcast if it succeeds
+        try this.createProxyWithNonce(safeProxyFactory, deployer, safeSingletonAddress, initializer, params.saltNonce)
+        returns (address _proxy) {
+            vm.revertTo(snap);
+            vm.broadcast(deployer);
+            proxy = _proxy;
+            require(
+                proxy
+                    == calculateProxyAddress(address(safeProxyFactory), safeSingletonAddress, initializer, params.saltNonce),
+                "Proxy address mismatch"
+            );
+            console2.log("Safe deployed at: ", proxy);
+        } catch {
+            proxy =
+                calculateProxyAddress(address(safeProxyFactory), safeSingletonAddress, initializer, params.saltNonce);
+            console2.log("Safe already deployed at: ", proxy);
+        }
+        return proxy;
+    }
+
+    function calculateProxyAddress(
+        address proxyFactoryAddress,
+        address safeSingletonAddress,
+        bytes memory initializer,
+        uint256 saltNonce
+    ) internal pure returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(keccak256(initializer), saltNonce));
+        bytes memory deploymentData = abi.encodePacked(SAFE_PROXY_1_3_0_CREATION_CODE, abi.encode(safeSingletonAddress));
+        return Create2AddressDeriver.deriveCreate2Address(proxyFactoryAddress, salt, deploymentData);
+    }
+
+    /**
+     * @dev vm.broadcast doesn't play nicely with try/catch so wrap the broadcast in a try/catch
+     */
+    function createProxyWithNonce(
+        IGnosisSafeProxyFactory factory,
+        address broadcaster,
+        address safeSingletonAddress,
+        bytes memory initializer,
+        uint256 saltNonce
+    ) external returns (address) {
+        vm.broadcast(broadcaster);
+        return factory.createProxyWithNonce(safeSingletonAddress, initializer, saltNonce);
     }
 
     function _create2SafeSingletonIfNotDeployed() internal returns (address) {
