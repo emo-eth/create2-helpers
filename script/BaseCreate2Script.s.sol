@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import { Script, console2, StdChains } from "forge-std/Script.sol";
-import { IImmutableCreate2Factory } from "src/lib/IImmutableCreate2Factory.sol";
+import {Script, console2, StdChains} from "forge-std/Script.sol";
+import {IImmutableCreate2Factory} from "src/lib/IImmutableCreate2Factory.sol";
 import {
     IMMUTABLE_CREATE2_ADDRESS,
     IMMUTABLE_CREATE2_RUNTIME_BYTECODE,
     MINIMUM_VIABLE_CONTRACT_CREATION_CODE
 } from "src/lib/Constants.sol";
-import { Create2AddressDeriver } from "src/lib/Create2AddressDeriver.sol";
+import {Create2AddressDeriver} from "src/lib/Create2AddressDeriver.sol";
 
 contract BaseCreate2Script is Script {
     // to be set when running
@@ -21,7 +21,7 @@ contract BaseCreate2Script is Script {
     /**
      * @notice Given a list of networks, fork each network and execute the deployLogic function for each one.
      */
-    function runOnNetworks(function() internal returns (address) runLogic, string[] memory networks) internal virtual {
+    function runOnNetworks(function() external returns (address) runLogic, string[] memory networks) internal virtual {
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
             vm.createSelectFork(StdChains.getChain(network).rpcUrl);

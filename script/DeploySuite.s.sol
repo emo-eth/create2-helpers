@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import { BaseCreate2Script, console2 } from "./BaseCreate2Script.s.sol";
-import { DeploySafe } from "./DeploySafe.s.sol";
-import { DeployTimelockController } from "./DeployTimelockController.s.sol";
-import { DeployProxyAdmin } from "./DeployProxyAdmin.s.sol";
-import { DeployTransparentUpgradeableProxy } from "./DeployTransparentUpgradeableProxy.s.sol";
+import {BaseCreate2Script, console2} from "./BaseCreate2Script.s.sol";
+import {DeploySafe} from "./DeploySafe.s.sol";
+import {DeployTimelockController} from "./DeployTimelockController.s.sol";
+import {DeployProxyAdmin} from "./DeployProxyAdmin.s.sol";
+import {DeployTransparentUpgradeableProxy} from "./DeployTransparentUpgradeableProxy.s.sol";
 
 contract DeploySuite is BaseCreate2Script {
     function run() public {
-        runOnNetworks(deploy, vm.envString("NETWORKS", ","));
+        runOnNetworks(this.deploy, vm.envString("NETWORKS", ","));
     }
 
-    function deploy() internal returns (address) {
+    function deploy() external returns (address) {
         address safe = (new DeploySafe()).deploy();
         vm.setEnv("TIMELOCK_PROPOSERS", vm.toString(safe));
         address timelock = (new DeployTimelockController()).deploy();
