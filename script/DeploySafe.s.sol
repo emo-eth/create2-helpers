@@ -10,10 +10,10 @@ import {
     SAFE_1_3_0_CREATION_CODE,
     SAFE_COMPATIBILITY_FALLBACK_HANDLER_1_3_0_ADDRESS,
     SAFE_COMPATIBILITY_FALLBACK_HANDLER_1_3_0_CREATION_CODE
-} from "src/lib/Constants.sol";
-import {IGnosisSafeProxyFactory} from "src/helpers/interfaces/IGnosisSafeProxyFactory.sol";
-import {IGnosisSafe} from "src/helpers/interfaces/IGnosisSafe.sol";
-import {Create2AddressDeriver} from "src/lib/Create2AddressDeriver.sol";
+} from "../src/lib/Constants.sol";
+import {IGnosisSafeProxyFactory} from "../src/helpers/interfaces/IGnosisSafeProxyFactory.sol";
+import {IGnosisSafe} from "../src/helpers/interfaces/IGnosisSafe.sol";
+import {Create2AddressDeriver} from "../src/lib/Create2AddressDeriver.sol";
 
 contract DeploySafe is BaseCreate2Script {
     struct SafeSetupParams {

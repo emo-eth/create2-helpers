@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {BaseCreate2Script, console2} from "./BaseCreate2Script.s.sol";
-import {ProxyAdmin} from "src/helpers/ProxyAdmin.sol";
+import {ProxyAdmin} from "../src/helpers/ProxyAdmin.sol";
 
 contract DeployProxyAdmin is BaseCreate2Script {
     function run() public {
