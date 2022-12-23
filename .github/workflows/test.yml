@@ -1,7 +1,11 @@
 name: test
 
-on: workflow_dispatch
-
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  pull_request:
+    types: [opened, reopened, synchronize]
 env:
   FOUNDRY_PROFILE: ci
 

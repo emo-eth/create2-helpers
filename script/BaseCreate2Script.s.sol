@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {Script, console2, StdChains} from "forge-std/Script.sol";
-import {IImmutableCreate2Factory} from "../src/lib/IImmutableCreate2Factory.sol";
+import { Script, console2, StdChains } from "forge-std/Script.sol";
+import { IImmutableCreate2Factory } from "../src/lib/IImmutableCreate2Factory.sol";
 import {
     IMMUTABLE_CREATE2_ADDRESS,
     IMMUTABLE_CREATE2_RUNTIME_BYTECODE,
     MINIMUM_VIABLE_CONTRACT_CREATION_CODE
 } from "../src/lib/Constants.sol";
-import {Create2AddressDeriver} from "../src/lib/Create2AddressDeriver.sol";
+import { Create2AddressDeriver } from "../src/lib/Create2AddressDeriver.sol";
 
 contract BaseCreate2Script is Script {
     // to be set when running
     address deployer;
+
+    constructor() {
+        setUp();
+    }
 
     function setUp() public virtual {
         deployer = vm.rememberKey(vm.envUint("DEPLOYER_PRIVATE_KEY"));

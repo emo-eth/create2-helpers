@@ -49,4 +49,4 @@ function createBytes32ImmutableSalt(address _deployer, uint96 _salt) pure return
     return ImmutableSalt.unwrap(createImmutableSalt(_deployer, _salt));
 }
 
-using {deployer, salt} for ImmutableSalt global;
+using { deployer, salt } for ImmutableSalt global;
