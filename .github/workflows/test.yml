@@ -8,6 +8,7 @@ on:
     types: [opened, reopened, synchronize]
 env:
   FOUNDRY_PROFILE: ci
+  DEPLOYER_PRIVATE_KEY: 0xDEADBEEF00000000000000000000000000000000000000000000000000000000
 
 jobs:
   check:

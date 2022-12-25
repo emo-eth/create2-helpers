@@ -10,6 +10,5 @@ contract BaseTest is Test {
     function setUp() public virtual {
         test = new PublicBaseCreate2();
         (, uint256 key) = makeAddrAndKey("deployer");
-        vm.setEnv("DEPLOYER_PRIVATE_KEY", vm.toString(key));
     }
 }
