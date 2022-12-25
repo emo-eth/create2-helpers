@@ -14,3 +14,6 @@ broadcast/
 # coverage
 html
 lcov.info
+
+node_modules
+.*
