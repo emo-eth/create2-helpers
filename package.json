@@ -1,6 +1,6 @@
 {
   "name": "@emo-eth/create2-helpers",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "create2-helpers is a suite of smart contracts and forge scripts meant to make working with cross-chain deterministic deployments easier and more convenient.",
   "main": "index.js",
   "scripts": {
