@@ -11,6 +11,7 @@ jobs:
         with:
           node-version: "16.x"
           registry-url: "https://registry.npmjs.org"
+      - run: grep -RiIln 'openzeppelin-contracts' src | xargs sed -i 's/openzeppelin\-contracts/@openzeppelin\/contracts/g'
       - run: yarn
       - run: npm publish --access public
         env:
