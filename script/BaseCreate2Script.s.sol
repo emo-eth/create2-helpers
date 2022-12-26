@@ -38,14 +38,14 @@ contract BaseCreate2Script is Script {
      * @dev Create a contract with a single STOP (00) opcode (stopcode), broadcasted by the specified broadcaster
      *      Useful for proxy contracts whose initial implementation must be a smart contract
      */
-    function _create2MinimumViableContract(address broadcaster) internal returns (address) {
+    function _create2MinimumViableContract(address broadcaster) internal virtual returns (address) {
         return _immutableCreate2IfNotDeployed(broadcaster, bytes32(0), MINIMUM_VIABLE_CONTRACT_CREATION_CODE);
     }
 
     /**
      * @dev Create2 a contract using the ImmutableCreate2Factory, with the specified initCode
      */
-    function _immutableCreate2IfNotDeployed(bytes32 salt, bytes memory initCode) internal returns (address) {
+    function _immutableCreate2IfNotDeployed(bytes32 salt, bytes memory initCode) internal virtual returns (address) {
         return _immutableCreate2IfNotDeployed(msg.sender, salt, initCode);
     }
 
@@ -54,6 +54,7 @@ contract BaseCreate2Script is Script {
      */
     function _immutableCreate2IfNotDeployed(address broadcaster, bytes32 salt, bytes memory initCode)
         internal
+        virtual
         returns (address)
     {
         address expectedAddress = Create2AddressDeriver.deriveCreate2Address(IMMUTABLE_CREATE2_ADDRESS, salt, initCode);
@@ -67,7 +68,7 @@ contract BaseCreate2Script is Script {
     /**
      * @dev Create2 a contract using the Arachnid Create2 Factory, with the specified salt and initCode
      */
-    function _create2IfNotDeployed(bytes32 salt, bytes memory initCode) internal returns (address) {
+    function _create2IfNotDeployed(bytes32 salt, bytes memory initCode) internal virtual returns (address) {
         return _create2IfNotDeployed(msg.sender, 0, salt, initCode);
     }
 
@@ -77,6 +78,7 @@ contract BaseCreate2Script is Script {
      */
     function _create2IfNotDeployed(address broadcaster, bytes32 salt, bytes memory initCode)
         internal
+        virtual
         returns (address)
     {
         return _create2IfNotDeployed(broadcaster, 0, salt, initCode);
@@ -88,6 +90,7 @@ contract BaseCreate2Script is Script {
      */
     function _create2IfNotDeployed(address broadcaster, uint256 value, bytes32 salt, bytes memory initCode)
         internal
+        virtual
         returns (address)
     {
         address expectedAddress = Create2AddressDeriver.deriveCreate2Address(CREATE2_FACTORY, salt, initCode);
@@ -102,7 +105,7 @@ contract BaseCreate2Script is Script {
     /**
      * @dev Get the ImmutableCreate2Factory, etching the code if it is not deployed in a test or simulation
      */
-    function immutableCreate2() internal returns (IImmutableCreate2Factory) {
+    function immutableCreate2() internal virtual returns (IImmutableCreate2Factory) {
         // etch code at the address if we are simulating in a fork that does not have the factory deployed
         if (IMMUTABLE_CREATE2_ADDRESS.code.length == 0) {
             console2.log(
