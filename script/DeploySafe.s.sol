@@ -74,16 +74,18 @@ contract DeploySafe is BaseCreate2Script {
         // broadcast doesn't play well with try/catch
         uint256 snap = vm.snapshot();
         // broadcasting doesn't play with with try/catch, so try and then broadcast if it succeeds
-        try this.createProxyWithNonce(safeProxyFactory, deployer, safeSingletonAddress, initializer, params.saltNonce)
-        returns (address _proxy) {
+        try this.createProxyWithNonce(safeProxyFactory, safeSingletonAddress, initializer, params.saltNonce) returns (
+            address _proxy
+        ) {
             vm.revertTo(snap);
-            vm.broadcast(deployer);
             proxy = _proxy;
             require(
                 proxy
                     == calculateProxyAddress(address(safeProxyFactory), safeSingletonAddress, initializer, params.saltNonce),
                 "Proxy address mismatch"
             );
+            vm.broadcast(deployer);
+            safeProxyFactory.createProxyWithNonce(safeSingletonAddress, initializer, params.saltNonce);
             console2.log("Safe deployed at: ", proxy);
         } catch {
             proxy =
@@ -109,12 +111,10 @@ contract DeploySafe is BaseCreate2Script {
      */
     function createProxyWithNonce(
         IGnosisSafeProxyFactory factory,
-        address broadcaster,
         address safeSingletonAddress,
         bytes memory initializer,
         uint256 saltNonce
     ) external returns (address) {
-        vm.broadcast(broadcaster);
         return factory.createProxyWithNonce(safeSingletonAddress, initializer, saltNonce);
     }
 

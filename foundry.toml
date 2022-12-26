@@ -12,9 +12,19 @@ tab_width = 4
 bracket_spacing = true
 
 [rpc_endpoints]
-mainnet = '${ETH_RPC_URL}'
+mainnet = '${ETHEREUM_RPC_URL}'
 goerli = '${GOERLI_RPC_URL}'
 polygon = '${POLYGON_RPC_URL}'
 polygon_mumbai = '${MUMBAI_RPC_URL}'
+optimism = '${OPTIMISM_RPC_URL}'
+optimism_goerli = '${OPTIMISM_GOERLI_RPC_URL}'
+arbitrum_one = '${ARBITRUM_RPC_URL}'
+arbitrum_nova = '${ARBITRUM_NOVA_RPC_URL}'
+arbitrum_one_goerli = '${ARBITRUM_GOERLI_RPC_URL}'
+avalanche = '${AVALANCHE_RPC_URL}'
+avalanche_fuji = '${FUJI_RPC_URL}'
+bnb_smart_chain = '${BSC_RPC_URL}'
+bnb_smart_chain_testnet = '${BSC_TEST_RPC_URL}'
+gnosis_chain = '${GNOSIS_RPC_URL}'
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
