@@ -19,7 +19,12 @@ contract BaseCreate2Script is Script {
     }
 
     function setUp() public virtual {
-        deployer = vm.rememberKey(vm.envUint("DEPLOYER_PRIVATE_KEY"));
+        uint256 pkey = vm.envOr("DEPLOYER_PRIVATE_KEY", uint256(1));
+        if (pkey == 1) {
+            console2.log("DEPLOYER_PRIVATE_KEY env var not set; using dummy private key");
+        }
+
+        deployer = vm.rememberKey(pkey);
     }
 
     /**
