@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.14;
 
 /**
  * @dev ImmutableSalt is a wrapper around a bytes32 that contains an address and a bytes12, with the address packed into

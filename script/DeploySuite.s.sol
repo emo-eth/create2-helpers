@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.14;
 
 import { BaseCreate2Script, console2 } from "./BaseCreate2Script.s.sol";
 import { DeploySafe } from "./DeploySafe.s.sol";

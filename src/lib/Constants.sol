@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.14;
 
 ///@dev address that the ImmutableCreate2Factory is deployed to on most networks
 address constant IMMUTABLE_CREATE2_ADDRESS = 0x0000000000FFe8B47B3e2130213B802212439497;

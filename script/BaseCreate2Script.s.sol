@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.14;
 
 import { Script, console2, StdChains } from "forge-std/Script.sol";
 import { IImmutableCreate2Factory } from "../src/lib/IImmutableCreate2Factory.sol";
@@ -11,6 +11,9 @@ import {
 import { Create2AddressDeriver } from "../src/lib/Create2AddressDeriver.sol";
 
 contract BaseCreate2Script is Script {
+    uint256 constant FALLBACK_PRIVATE_KEY = 1;
+    // don't send any real money etc here :)
+    uint256 constant FIRST_ANVIL_PRIVATE_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
     // to be set when running
     address deployer;
 
@@ -19,9 +22,10 @@ contract BaseCreate2Script is Script {
     }
 
     function setUp() public virtual {
-        uint256 pkey = vm.envOr("DEPLOYER_PRIVATE_KEY", uint256(1));
-        if (pkey == 1) {
+        uint256 pkey = vm.envOr("DEPLOYER_PRIVATE_KEY", FALLBACK_PRIVATE_KEY);
+        if (pkey == FALLBACK_PRIVATE_KEY) {
             console2.log("DEPLOYER_PRIVATE_KEY env var not set; using dummy private key");
+            pkey = FIRST_ANVIL_PRIVATE_KEY;
         }
 
         deployer = vm.rememberKey(pkey);
@@ -33,7 +37,7 @@ contract BaseCreate2Script is Script {
     function runOnNetworks(function() external returns (address) runLogic, string[] memory networks) internal virtual {
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
-            vm.createSelectFork(StdChains.getChain(network).rpcUrl);
+            vm.createSelectFork(getChain(network).rpcUrl);
             console2.log("Running on network: ", network);
             runLogic();
         }
