@@ -96,7 +96,7 @@ contract BaseCreate2Script is Script {
         address expectedAddress = Create2AddressDeriver.deriveCreate2Address(CREATE2_FACTORY, salt, initCode);
         if (expectedAddress.code.length == 0) {
             vm.broadcast(broadcaster);
-            (bool success,) = CREATE2_FACTORY.call{value: value}(bytes.concat(salt, initCode));
+            (bool success,) = CREATE2_FACTORY.call{ value: value }(bytes.concat(salt, initCode));
             require(success, "Create2 failed");
         }
         return expectedAddress;

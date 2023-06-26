@@ -84,6 +84,6 @@ contract ProxyAdmin is Ownable2Step {
         virtual
         onlyOwner
     {
-        proxy.upgradeToAndCall{value: msg.value}(implementation, data);
+        proxy.upgradeToAndCall{ value: msg.value }(implementation, data);
     }
 }
