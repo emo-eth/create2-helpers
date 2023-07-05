@@ -8,6 +8,8 @@ import {
     SAFE_PROXY_1_3_0_CREATION_CODE,
     SAFE_1_3_0_ADDRESS,
     SAFE_1_3_0_CREATION_CODE,
+    L2_SAFE_1_3_0_ADDRESS,
+    L2_SAFE_1_3_0_CREATION_CODE,
     SAFE_COMPATIBILITY_FALLBACK_HANDLER_1_3_0_ADDRESS,
     SAFE_COMPATIBILITY_FALLBACK_HANDLER_1_3_0_CREATION_CODE
 } from "../src/lib/Constants.sol";
@@ -118,10 +120,17 @@ contract DeploySafe is BaseCreate2Script {
         return factory.createProxyWithNonce(safeSingletonAddress, initializer, saltNonce);
     }
 
-    function _create2SafeSingletonIfNotDeployed() internal returns (address) {
-        address safeSingleton = _create2IfNotDeployed(deployer, 0, bytes32(0), SAFE_1_3_0_CREATION_CODE);
-        require(safeSingleton == SAFE_1_3_0_ADDRESS, "Safe Singleton was not deployed");
-        return safeSingleton;
+    function _create2SafeSingletonIfNotDeployed() internal returns (address safeSingleton) {
+        // only use L1 singleton on eth mainnet for ui compatibility
+        if (block.chainid == 1) {
+            safeSingleton = _create2IfNotDeployed(deployer, 0, bytes32(0), SAFE_1_3_0_CREATION_CODE);
+            require(safeSingleton == SAFE_1_3_0_ADDRESS, "Safe Singleton was not deployed");
+            return safeSingleton;
+        } else {
+            safeSingleton = _create2IfNotDeployed(deployer, 0, bytes32(0), L2_SAFE_1_3_0_CREATION_CODE);
+            require(safeSingleton == L2_SAFE_1_3_0_ADDRESS, "L2 Safe Singleton was not deployed");
+            return safeSingleton;
+        }
     }
 
     function _create2SafeProxyFactoryIfNotDeployed() internal returns (address) {
