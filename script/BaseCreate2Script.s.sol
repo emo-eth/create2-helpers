@@ -12,6 +12,7 @@ import { Create2AddressDeriver } from "../src/lib/Create2AddressDeriver.sol";
 
 contract BaseCreate2Script is Script {
     uint256 constant FALLBACK_PRIVATE_KEY = 1;
+    address constant FALLBACK_DEPLOYER = address(bytes20("fallback"));
     // don't send any real money etc here :)
     uint256 constant FIRST_ANVIL_PRIVATE_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
     // to be set when running
@@ -22,13 +23,22 @@ contract BaseCreate2Script is Script {
     }
 
     function setUp() public virtual {
+        // legacy - try to load private key from env var
         uint256 pkey = vm.envOr("DEPLOYER_PRIVATE_KEY", FALLBACK_PRIVATE_KEY);
-        if (pkey == FALLBACK_PRIVATE_KEY) {
-            console2.log("DEPLOYER_PRIVATE_KEY env var not set; using dummy private key");
-            pkey = FIRST_ANVIL_PRIVATE_KEY;
+        // try to load deployer from env var
+        deployer = vm.envOr("DEPLOYER", FALLBACK_DEPLOYER);
+        // if a private key is set, use it, and log a warning
+        if (pkey != FALLBACK_PRIVATE_KEY) {
+            console2.log(
+                "DEPLOYER_PRIVATE_KEY env var is deprecated in favor of wallet keystores passed via --account; see `cast wallet` docs for more info"
+            );
+            deployer = vm.rememberKey(pkey);
+        } else if (deployer == FALLBACK_DEPLOYER) {
+            // if neither a private key nor a deployer is set, use a dummy private key
+            console2.log("DEPLOYER env var not set; using dummy private key");
+            deployer = vm.rememberKey(FIRST_ANVIL_PRIVATE_KEY);
         }
-
-        deployer = vm.rememberKey(pkey);
+        // otherwise continue using the deployer from the env var
     }
 
     /**
@@ -37,7 +47,19 @@ contract BaseCreate2Script is Script {
     function runOnNetworks(function() external returns (address) runLogic, string[] memory networks) internal virtual {
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
-            vm.createSelectFork(getChain(network).rpcUrl);
+            vm.createSelectFork(vm.rpcUrl(network));
+            console2.log("Running on network: ", network);
+            runLogic();
+        }
+    }
+
+    /**
+     * @notice Given a list of networks, fork each network and execute the deployLogic function for each one.
+     */
+    function runOnNetworks(function() external runLogic, string[] memory networks) internal virtual {
+        for (uint256 i = 0; i < networks.length; i++) {
+            string memory network = networks[i];
+            vm.createSelectFork(vm.rpcUrl(network));
             console2.log("Running on network: ", network);
             runLogic();
         }
