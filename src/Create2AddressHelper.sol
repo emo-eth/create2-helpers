@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-library Create2AddressDeriver {
-    function deriveCreate2Address(address deployer, bytes32 salt, bytes memory initCode)
+library Create2AddressHelper {
+    function computeCreate2Address(address deployer, bytes32 salt, bytes memory initCode)
         internal
         pure
         returns (address)
     {
-        return deriveCreate2AddressFromHash(deployer, salt, keccak256(initCode));
+        return computeCreate2Address(deployer, salt, keccak256(initCode));
     }
 
-    function deriveCreate2AddressFromHash(address deployer, bytes32 salt, bytes32 initCodeHash)
+    function computeCreate2Address(address deployer, bytes32 salt, bytes32 initCodeHash)
         internal
         pure
         returns (address)

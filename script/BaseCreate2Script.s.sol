@@ -2,13 +2,8 @@
 pragma solidity ^0.8.14;
 
 import { Script, console2, StdChains } from "forge-std/Script.sol";
-import { IImmutableCreate2Factory } from "../src/lib/IImmutableCreate2Factory.sol";
-import {
-    IMMUTABLE_CREATE2_ADDRESS,
-    IMMUTABLE_CREATE2_RUNTIME_BYTECODE,
-    MINIMUM_VIABLE_CONTRACT_CREATION_CODE
-} from "../src/lib/Constants.sol";
-import { Create2AddressDeriver } from "../src/lib/Create2AddressDeriver.sol";
+import { IImmutableCreate2Factory } from "../src/IImmutableCreate2Factory.sol";
+import { IMMUTABLE_CREATE2_ADDRESS, IMMUTABLE_CREATE2_RUNTIME_BYTECODE } from "../src/Constants.sol";
 
 contract BaseCreate2Script is Script {
     uint256 constant FALLBACK_PRIVATE_KEY = 1;
@@ -66,14 +61,6 @@ contract BaseCreate2Script is Script {
     }
 
     /**
-     * @dev Create a contract with a single STOP (00) opcode (stopcode), broadcasted by the specified broadcaster
-     *      Useful for proxy contracts whose initial implementation must be a smart contract
-     */
-    function _create2MinimumViableContract(address broadcaster) internal virtual returns (address) {
-        return _immutableCreate2IfNotDeployed(broadcaster, bytes32(0), MINIMUM_VIABLE_CONTRACT_CREATION_CODE);
-    }
-
-    /**
      * @dev Create2 a contract using the ImmutableCreate2Factory, with the specified initCode
      */
     function _immutableCreate2IfNotDeployed(bytes32 salt, bytes memory initCode) internal virtual returns (address) {
@@ -88,7 +75,7 @@ contract BaseCreate2Script is Script {
         virtual
         returns (address)
     {
-        address expectedAddress = Create2AddressDeriver.deriveCreate2Address(IMMUTABLE_CREATE2_ADDRESS, salt, initCode);
+        address expectedAddress = vm.computeCreate2Address(salt, keccak256(initCode), IMMUTABLE_CREATE2_ADDRESS);
         if (!immutableCreate2().hasBeenDeployed(expectedAddress)) {
             vm.broadcast(broadcaster);
             immutableCreate2().safeCreate2(salt, initCode);
@@ -124,7 +111,7 @@ contract BaseCreate2Script is Script {
         virtual
         returns (address)
     {
-        address expectedAddress = Create2AddressDeriver.deriveCreate2Address(CREATE2_FACTORY, salt, initCode);
+        address expectedAddress = vm.computeCreate2Address(salt, keccak256(initCode), CREATE2_FACTORY);
         if (expectedAddress.code.length == 0) {
             vm.broadcast(broadcaster);
             (bool success,) = CREATE2_FACTORY.call{ value: value }(bytes.concat(salt, initCode));
