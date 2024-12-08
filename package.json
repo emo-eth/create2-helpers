@@ -1,6 +1,6 @@
 {
 	"name": "@emo-eth/create2-helpers",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"description": "create2-helpers is a suite of smart contracts and forge scripts meant to make working with cross-chain deterministic deployments easier and more convenient.",
 	"main": "index.js",
 	"scripts": {
@@ -10,12 +10,20 @@
 		"type": "git",
 		"url": "git+https://github.com/emo-eth/create2-helpers.git"
 	},
-	"keywords": ["ethereum", "create2", "helpers"],
+	"keywords": [
+		"ethereum",
+		"create2",
+		"helpers"
+	],
 	"author": "emo.eth",
 	"license": "MIT",
 	"bugs": {
 		"url": "https://github.com/emo-eth/create2-helpers/issues"
 	},
 	"homepage": "https://github.com/emo-eth/create2-helpers#readme",
-	"files": ["src/**/*.sol", "package.json", "README.md"]
+	"files": [
+		"src/**/*.sol",
+		"package.json",
+		"README.md"
+	]
 }

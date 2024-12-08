@@ -7,7 +7,7 @@ import { MINIMUM_VIABLE_CONTRACT_CREATION_CODE } from "../src/Constants.sol";
 contract BaseCreate2ScriptTest is BaseTest {
     function testImmutableCreate2() public {
         address mvi = test.immutableCreate2IfNotDeployed(bytes32(0), MINIMUM_VIABLE_CONTRACT_CREATION_CODE);
-        assertEq(mvi, 0x5EB55A6805b5E0A6ACec8803a31aaaae4D6c275E);
+        assertEq(mvi, 0xCb2c6Aa22d94247Efe9E34D0d90729A1c7aF7A9e);
     }
 
     function testCreate2AlreadyDeployed() public {
