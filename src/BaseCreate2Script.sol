@@ -42,7 +42,7 @@ contract BaseCreate2Script is Script {
     function runOnNetworks(function() external returns (address) runLogic, string[] memory networks) internal virtual {
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
-            vm.createSelectFork(vm.rpcUrl(network));
+            vm.createSelectFork(getChain(network).rpcUrl);
             console2.log("Running on network: ", network);
             runLogic();
         }

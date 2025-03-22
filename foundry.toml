@@ -2,9 +2,9 @@
 optimizer_runs = 1_000_000
 src = 'src'
 out = 'out'
-libs = ['lib']
+libs = ["dependencies"]
 bytecode_hash = "none"
-remappings = ['forge-std/=lib/forge-std/src/', 'openzeppelin-contracts/=lib/openzeppelin-contracts/']
+remappings = ['forge-std/=dependencies/forge-std-1.9.6/src/']
 
 [fmt]
 line_length = 120
@@ -26,5 +26,9 @@ avalanche_fuji = '${FUJI_RPC_URL}'
 bnb_smart_chain = '${BSC_RPC_URL}'
 bnb_smart_chain_testnet = '${BSC_TEST_RPC_URL}'
 gnosis_chain = '${GNOSIS_RPC_URL}'
+silly = '${ETHEREUM_RPC_URL}'
+
+[dependencies]
+forge-std = "1.9.6"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
