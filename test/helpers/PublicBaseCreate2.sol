@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-import { BaseCreate2Script } from "script/BaseCreate2Script.s.sol";
+import { BaseCreate2Script } from "src/BaseCreate2Script.sol";
 
 contract PublicBaseCreate2 is BaseCreate2Script {
     function create2IfNotDeployed(bytes32 salt, bytes memory initCode) public payable returns (address) {

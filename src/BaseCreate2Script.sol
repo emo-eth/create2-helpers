@@ -39,7 +39,7 @@ contract BaseCreate2Script is Script {
     /**
      * @notice Given a list of networks, fork each network and execute the deployLogic function for each one.
      */
-    function runOnNetworks(function() external returns (address) runLogic, string[] memory networks) internal virtual {
+    function runOnNetworks(function() internal returns (address) runLogic, string[] memory networks) internal virtual {
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
             vm.createSelectFork(getChain(network).rpcUrl);
@@ -51,7 +51,7 @@ contract BaseCreate2Script is Script {
     /**
      * @notice Given a list of networks, fork each network and execute the deployLogic function for each one.
      */
-    function runOnNetworks(function() external runLogic, string[] memory networks) internal virtual {
+    function runOnNetworks(function() internal runLogic, string[] memory networks) internal virtual {
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
             vm.createSelectFork(vm.rpcUrl(network));
