@@ -3,7 +3,13 @@ pragma solidity ^0.8.14;
 
 import { Script, console2, StdChains } from "forge-std/Script.sol";
 import { IImmutableCreate2Factory } from "../src/IImmutableCreate2Factory.sol";
-import { IMMUTABLE_CREATE2_ADDRESS, IMMUTABLE_CREATE2_RUNTIME_BYTECODE } from "../src/Constants.sol";
+import { ICreate3Factory } from "../src/ICreate3Factory.sol";
+import {
+    IMMUTABLE_CREATE2_ADDRESS,
+    IMMUTABLE_CREATE2_RUNTIME_BYTECODE,
+    CREATE3_FACTORY,
+    CREATE3_RUNTIME_BYTECODE
+} from "../src/Constants.sol";
 
 contract BaseCreate2Script is Script {
     uint256 constant FALLBACK_PRIVATE_KEY = 1;
@@ -42,7 +48,7 @@ contract BaseCreate2Script is Script {
     function runOnNetworks(function() internal returns (address) runLogic, string[] memory networks) internal virtual {
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
-            vm.createSelectFork(getChain(network).rpcUrl);
+            vm.createSelectFork(vm.rpcUrl(network));
             console2.log("Running on network: ", network);
             runLogic();
         }
@@ -134,5 +140,53 @@ contract BaseCreate2Script is Script {
             vm.etch(IMMUTABLE_CREATE2_ADDRESS, IMMUTABLE_CREATE2_RUNTIME_BYTECODE);
         }
         return IImmutableCreate2Factory(IMMUTABLE_CREATE2_ADDRESS);
+    }
+
+    /**
+     * @dev Create3 a contract using the Create3Factory, with the specified salt and creationCode
+     */
+    function _create3IfNotDeployed(bytes32 salt, bytes memory creationCode) internal virtual returns (address) {
+        return _create3IfNotDeployed(msg.sender, 0, salt, creationCode);
+    }
+
+    /**
+     * @dev Create3 a contract using the Create3Factory, with the specified salt and creationCode,
+     *      broadcast by the specified broadcaster
+     */
+    function _create3IfNotDeployed(address broadcaster, bytes32 salt, bytes memory creationCode)
+        internal
+        virtual
+        returns (address)
+    {
+        return _create3IfNotDeployed(broadcaster, 0, salt, creationCode);
+    }
+
+    /**
+     * @dev Create3 a contract using the Create3Factory, with the specified salt and creationCode,
+     *      broadcast by the specified broadcaster with the specified value
+     */
+    function _create3IfNotDeployed(address broadcaster, uint256 value, bytes32 salt, bytes memory creationCode)
+        internal
+        virtual
+        returns (address)
+    {
+        address expectedAddress = create3().getDeployed(broadcaster, salt);
+        if (expectedAddress.code.length == 0) {
+            vm.broadcast(broadcaster);
+            address deployed = create3().deploy{ value: value }(salt, creationCode);
+            require(deployed == expectedAddress, "Create3 address mismatch");
+        }
+        return expectedAddress;
+    }
+
+    /**
+     * @dev Get the Create3Factory, etching the code if it is not deployed in a test or simulation
+     */
+    function create3() internal virtual returns (ICreate3Factory) {
+        if (CREATE3_FACTORY.code.length == 0) {
+            console2.log("Create3Factory not found; etching code for simulation.");
+            vm.etch(CREATE3_FACTORY, CREATE3_RUNTIME_BYTECODE);
+        }
+        return ICreate3Factory(CREATE3_FACTORY);
     }
 }

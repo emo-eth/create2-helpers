@@ -34,4 +34,12 @@ contract BaseCreate2ScriptTest is BaseTest {
         address result2 = test.immutableCreate2IfNotDeployed(salt, initCode);
         assertFalse(result == result2);
     }
+
+    function testCreate3AlreadyDeployed() public {
+        bytes32 salt = bytes32(0);
+        bytes memory creationCode = MINIMUM_VIABLE_CONTRACT_CREATION_CODE;
+        address result = test.create3IfNotDeployed(salt, creationCode);
+        address result2 = test.create3IfNotDeployed(salt, creationCode);
+        assertEq(result, result2);
+    }
 }

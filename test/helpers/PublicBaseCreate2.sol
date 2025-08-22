@@ -11,4 +11,8 @@ contract PublicBaseCreate2 is BaseCreate2Script {
     function immutableCreate2IfNotDeployed(bytes32 salt, bytes memory initCode) public payable returns (address) {
         return _immutableCreate2IfNotDeployed(msg.sender, salt, initCode);
     }
+
+    function create3IfNotDeployed(bytes32 salt, bytes memory creationCode) public payable returns (address) {
+        return _create3IfNotDeployed(msg.sender, msg.value, salt, creationCode);
+    }
 }

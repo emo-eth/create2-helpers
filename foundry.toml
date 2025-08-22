@@ -28,7 +28,4 @@ bnb_smart_chain_testnet = '${BSC_TEST_RPC_URL}'
 gnosis_chain = '${GNOSIS_RPC_URL}'
 silly = '${ETHEREUM_RPC_URL}'
 
-[dependencies]
-forge-std = "1.9.6"
-
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
