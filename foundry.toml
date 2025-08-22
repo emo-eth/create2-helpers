@@ -2,9 +2,9 @@
 optimizer_runs = 1_000_000
 src = 'src'
 out = 'out'
-libs = ["dependencies"]
+libs = ["lib"]
 bytecode_hash = "none"
-remappings = ['forge-std/=dependencies/forge-std-1.9.6/src/']
+remappings = ['forge-std/=lib/forge-std/src/']
 
 [fmt]
 line_length = 120
