@@ -21,7 +21,7 @@ forge install emo-eth/create2-helpers
 1. **BaseCreate2Script**: A base script that provides utility functions for deterministic deployments across chains
 2. **Create2AddressHelper**: Helper functions for computing CREATE2 addresses
 3. **ImmutableSalt**: A wrapper around bytes32 that helps work with the ImmutableCreate2Factory
-4. **Constants**: Predefined constants for CREATE2 factories and deployment code
+4. **Constants**: Predefined constants for CREATE2/CREATE3/CreateX factories and deployment code
 
 ### Creating a Deployment Script
 
@@ -79,6 +79,8 @@ contract DeployYourContract is BaseCreate2Script {
 2. Add custom RPC endpoints to the `[rpc_endpoints]` section of your `foundry.toml` (see [foundry.toml](./foundry.toml))
 3. Use `cast wallet` and the `--accounts` flag to provide the private key for the deployer specified in the `.env` file
 
+Note: `DEPLOYER_PRIVATE_KEY` is deprecated in favor of wallet keystores passed via `--account`. You can still set `DEPLOYER` to an address; if neither is set, a dummy anvil key is used when simulating locally.
+
 ### Running Your Deployment
 
 1. Create a `.env` file with your endpoints as specified in the `foundry.toml` file
@@ -122,3 +124,32 @@ address expectedAddress = Create2AddressHelper.computeCreate2Address(
     initCode
 );
 ```
+
+#### Using CREATE3
+
+`BaseCreate2Script` provides helpers for CREATE3 via a canonical factory:
+
+```solidity
+// Deploy with CREATE3 if not already deployed
+bytes32 salt = bytes32(uint256(0x123));
+bytes memory creationCode = abi.encodePacked(type(YourContract).creationCode);
+address deployed = _create3IfNotDeployed(salt, creationCode);
+```
+
+#### Using CreateX (CREATE, CREATE2, CREATE3)
+
+`BaseCreate2Script` also integrates with the CreateX factory. For CREATE3-style deployments, use the `_createX3IfNotDeployed` helpers. The salt is a compact `uint88` value; the final address is derived from a guarded salt that mixes the broadcaster address and the provided salt.
+
+```solidity
+// Deploy with CreateX (CREATE3) if not already deployed
+uint88 salt88 = 0x123;
+bytes memory creationCode = abi.encodePacked(type(YourContract).creationCode);
+address deployed = _createX3IfNotDeployed(salt88, creationCode);
+
+// You can also specify the broadcaster and value sent with the deployment
+address broadcaster = deployer;
+uint256 value = 0;
+address deployed2 = _createX3IfNotDeployed(broadcaster, value, salt88, creationCode);
+```
+
+To pre-compute the expected address for CreateX CREATE3, `BaseCreate2Script` internally derives a guarded salt as `keccak256(abi.encode(broadcaster, bytes32(uint256(uint160(broadcaster)) << 96 | uint256(salt88))))` and queries `createX().computeCreate3Address(guardedSalt)`.

@@ -4,9 +4,12 @@ pragma solidity ^0.8.14;
 import { Script, console2, StdChains } from "forge-std/Script.sol";
 import { IImmutableCreate2Factory } from "../src/IImmutableCreate2Factory.sol";
 import { ICreate3Factory } from "../src/ICreate3Factory.sol";
+import { ICreateX } from "../src/ICreateX.sol";
 import {
     IMMUTABLE_CREATE2_ADDRESS,
     IMMUTABLE_CREATE2_RUNTIME_BYTECODE,
+    CREATEX_FACTORY,
+    CREATEX_RUNTIME_BYTECODE,
     CREATE3_FACTORY,
     CREATE3_RUNTIME_BYTECODE
 } from "../src/Constants.sol";
@@ -138,6 +141,7 @@ contract BaseCreate2Script is Script {
                 " for instructions on how to deploy the ImmutableCreate2Factory to a new network."
             );
             vm.etch(IMMUTABLE_CREATE2_ADDRESS, IMMUTABLE_CREATE2_RUNTIME_BYTECODE);
+            vm.label(IMMUTABLE_CREATE2_ADDRESS, "ImmutableCreate2Factory");
         }
         return IImmutableCreate2Factory(IMMUTABLE_CREATE2_ADDRESS);
     }
@@ -186,7 +190,66 @@ contract BaseCreate2Script is Script {
         if (CREATE3_FACTORY.code.length == 0) {
             console2.log("Create3Factory not found; etching code for simulation.");
             vm.etch(CREATE3_FACTORY, CREATE3_RUNTIME_BYTECODE);
+            vm.label(CREATE3_FACTORY, "CREATE3Factory");
         }
         return ICreate3Factory(CREATE3_FACTORY);
+    }
+
+    /**
+     * @dev CreateX (CREATE3): deploy with the specified uint88 salt and creationCode.
+     *      The effective salt is guarded by the broadcaster to produce a consistent per-broadcaster address.
+     */
+    function _createX3IfNotDeployed(uint88 salt, bytes memory creationCode) internal virtual returns (address) {
+        return _createX3IfNotDeployed(msg.sender, 0, salt, creationCode);
+    }
+
+    /**
+     * @dev CreateX (CREATE3): deploy with the specified uint88 salt and creationCode,
+     *      broadcast by the specified broadcaster.
+     */
+    function _createX3IfNotDeployed(address broadcaster, uint88 salt, bytes memory creationCode)
+        internal
+        virtual
+        returns (address)
+    {
+        return _createX3IfNotDeployed(broadcaster, 0, salt, creationCode);
+    }
+
+    /**
+     * @dev CreateX (CREATE3): deploy with the specified uint88 salt and creationCode,
+     *      broadcast by the specified broadcaster and forwarding the specified value.
+     */
+    function _createX3IfNotDeployed(address broadcaster, uint256 value, uint88 salt, bytes memory creationCode)
+        internal
+        virtual
+        returns (address)
+    {
+        bytes32 intermediateSalt = bytes32(uint256(uint160(broadcaster)) << 96 | uint256(salt));
+        bytes32 guardedSalt;
+        assembly {
+            mstore(0x00, broadcaster)
+            mstore(0x20, intermediateSalt)
+            guardedSalt := keccak256(0x00, 0x40)
+        }
+        address expectedAddress = createX().computeCreate3Address(guardedSalt);
+        if (expectedAddress.code.length == 0) {
+            ICreateX _createX = createX();
+            vm.broadcast(broadcaster);
+            address deployed = _createX.deployCreate3{ value: value }(intermediateSalt, creationCode);
+            require(deployed == expectedAddress, "CreateX create3 address mismatch");
+        }
+        return expectedAddress;
+    }
+
+    /**
+     * @dev Get the CreateX factory, etching the code if it is not deployed in a test or simulation
+     */
+    function createX() internal virtual returns (ICreateX) {
+        if (CREATEX_FACTORY.code.length == 0) {
+            console2.log("CreateXFactory not found; etching code for simulation.");
+            vm.etch(CREATEX_FACTORY, CREATEX_RUNTIME_BYTECODE);
+            vm.label(CREATEX_FACTORY, "CreateX");
+        }
+        return ICreateX(CREATEX_FACTORY);
     }
 }

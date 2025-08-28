@@ -42,4 +42,12 @@ contract BaseCreate2ScriptTest is BaseTest {
         address result2 = test.create3IfNotDeployed(salt, creationCode);
         assertEq(result, result2);
     }
+
+    function testCreateX3AlreadyDeployed() public {
+        uint88 salt = 0;
+        bytes memory creationCode = MINIMUM_VIABLE_CONTRACT_CREATION_CODE;
+        address result = test.createX3IfNotDeployed(salt, creationCode);
+        address result2 = test.createX3IfNotDeployed(salt, creationCode);
+        assertEq(result, result2);
+    }
 }
