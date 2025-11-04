@@ -9,6 +9,5 @@ contract BaseTest is Test {
 
     function setUp() public virtual {
         test = new PublicBaseCreate2();
-        (, uint256 key) = makeAddrAndKey("deployer");
     }
 }

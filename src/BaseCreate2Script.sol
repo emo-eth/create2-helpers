@@ -1,21 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-import { Script, console2, StdChains } from "forge-std/Script.sol";
+import { Script, console2 } from "forge-std/Script.sol";
 import { IImmutableCreate2Factory } from "../src/IImmutableCreate2Factory.sol";
 import { ICreate3Factory } from "../src/ICreate3Factory.sol";
 import { ICreateX } from "../src/ICreateX.sol";
+import { IDeterministicProxyFactory } from "./IDeterministicProxyFactory.sol";
 import {
     IMMUTABLE_CREATE2_ADDRESS,
     IMMUTABLE_CREATE2_RUNTIME_BYTECODE,
     CREATEX_FACTORY,
     CREATEX_RUNTIME_BYTECODE,
     CREATE3_FACTORY,
-    CREATE3_RUNTIME_BYTECODE
+    CREATE3_RUNTIME_BYTECODE,
+    DETERMINISTIC_PROXY_FACTORY,
+    DETERMINISTIC_PROXY_FACTORY_RUNTIME_BYTECODE,
+    MINIMAL_UUPS,
+    MINIMAL_UUPS_RUNTIME_BYTECODE
 } from "../src/Constants.sol";
 
 contract BaseCreate2Script is Script {
     uint256 constant FALLBACK_PRIVATE_KEY = 1;
+    // forge-lint: disable-next-line(unsafe-typecast)
     address constant FALLBACK_DEPLOYER = address(bytes20("fallback"));
     // don't send any real money etc here :)
     uint256 constant FIRST_ANVIL_PRIVATE_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
@@ -251,5 +257,71 @@ contract BaseCreate2Script is Script {
             vm.label(CREATEX_FACTORY, "CreateX");
         }
         return ICreateX(CREATEX_FACTORY);
+    }
+
+    function _deployDeterministicProxyIfNotDeployed(
+        address implementation,
+        uint96 salt,
+        bytes memory callData,
+        bytes memory immutableArgs
+    ) internal virtual returns (address) {
+        return _deployDeterministicProxyIfNotDeployed(msg.sender, implementation, salt, callData, immutableArgs);
+    }
+
+    function _deployDeterministicProxyIfNotDeployed(
+        address broadcaster,
+        address implementation,
+        uint96 salt,
+        bytes memory callData,
+        bytes memory immutableArgs
+    ) internal virtual returns (address) {
+        IDeterministicProxyFactory _deterministicProxyFactory = deterministicProxyFactory();
+        bytes32 fullSalt = bytes32(uint256(uint160(broadcaster)) << 96 | uint256(salt));
+        // Use the factory's own method to get the initcode hash, then compute CREATE2 address
+        bytes32 initCodeHash = _deterministicProxyFactory.getInitcodeHashForProxy(implementation, immutableArgs);
+        // The factory uses CREATE2 internally, so the deployer is the factory address, not the broadcaster
+        address predictedAddress = predictDeterministicAddress(initCodeHash, fullSalt, DETERMINISTIC_PROXY_FACTORY);
+        if (predictedAddress.code.length == 0) {
+            vm.broadcast(broadcaster);
+            address deployed = _deterministicProxyFactory.deploy(implementation, fullSalt, callData, immutableArgs);
+            require(deployed == predictedAddress, "DeterministicProxyFactory deploy address mismatch");
+        }
+        return predictedAddress;
+    }
+
+    function deterministicProxyFactory() internal virtual returns (IDeterministicProxyFactory) {
+        if (DETERMINISTIC_PROXY_FACTORY.code.length == 0) {
+            console2.log("DeterministicProxyFactory not found; etching code for simulation.");
+            vm.etch(DETERMINISTIC_PROXY_FACTORY, DETERMINISTIC_PROXY_FACTORY_RUNTIME_BYTECODE);
+            vm.label(DETERMINISTIC_PROXY_FACTORY, "DeterministicProxyFactory");
+        }
+        if (MINIMAL_UUPS.code.length == 0) {
+            console2.log("MinimalUups not found; etching code for simulation.");
+            vm.etch(MINIMAL_UUPS, MINIMAL_UUPS_RUNTIME_BYTECODE);
+            vm.label(MINIMAL_UUPS, "MinimalUups");
+        }
+        return IDeterministicProxyFactory(DETERMINISTIC_PROXY_FACTORY);
+    }
+
+    /* Copied from Solady */
+
+    /// @dev Returns the address when a contract with initialization code hash,
+    /// `hash`, is deployed with `salt`, by `factoryAddress`.
+    /// Note: The returned result has dirty upper 96 bits. Please clean if used in assembly.
+    function predictDeterministicAddress(bytes32 hash, bytes32 salt, address factoryAddress)
+        internal
+        pure
+        returns (address predicted)
+    {
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Compute and store the bytecode hash.
+            mstore8(0x00, 0xff) // Write the prefix.
+            mstore(0x35, hash)
+            mstore(0x01, shl(96, factoryAddress))
+            mstore(0x15, salt)
+            predicted := keccak256(0x00, 0x55)
+            mstore(0x35, 0) // Restore the overwritten part of the free memory pointer.
+        }
     }
 }
