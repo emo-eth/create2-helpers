@@ -2,7 +2,12 @@
 
 create2-helpers is a suite of smart contracts and forge scripts meant to make working with cross-chain deterministic deployments easier and more convenient.
 
-It leverages Forge's default [Arachnid Deterministic Deployment Proxy](https://github.com/Arachnid/deterministic-deployment-proxy) as well as 0age's [ImmutableCreate2Factory](https://github.com/0age/metamorphic/blob/master/contracts/ImmutableCreate2Factory.sol).
+It leverages multiple deterministic deployment factories:
+- Forge's default [Arachnid Deterministic Deployment Proxy](https://github.com/Arachnid/deterministic-deployment-proxy) for CREATE2 deployments
+- 0age's [ImmutableCreate2Factory](https://github.com/0age/metamorphic/blob/master/contracts/ImmutableCreate2Factory.sol) for CREATE2 deployments
+- [Create3Factory](https://github.com/ZeframLou/create3-factory) for CREATE3 deployments
+- [CreateX](https://github.com/pcaversaccio/createx) for CREATE, CREATE2, and CREATE3 deployments
+- [DeterministicProxyFactory](https://github.com/emo-eth/deterministic-proxy-factory) for deterministic proxy, clone, and beacon proxy deployments
 
 ## Usage Guide
 
@@ -11,7 +16,7 @@ It leverages Forge's default [Arachnid Deterministic Deployment Proxy](https://g
 To install create2-helpers in your Foundry project:
 
 ```bash
-forge soldeer install create2-helpers~0.4.0
+forge soldeer install create2-helpers~0.8.0
 # or
 forge install emo-eth/create2-helpers
 ```
@@ -21,7 +26,8 @@ forge install emo-eth/create2-helpers
 1. **BaseCreate2Script**: A base script that provides utility functions for deterministic deployments across chains
 2. **Create2AddressHelper**: Helper functions for computing CREATE2 addresses
 3. **ImmutableSalt**: A wrapper around bytes32 that helps work with the ImmutableCreate2Factory
-4. **Constants**: Predefined constants for CREATE2/CREATE3/CreateX factories and deployment code
+4. **Constants**: Predefined constants for CREATE2/CREATE3/CreateX/DeterministicProxy factories and deployment code
+5. **IDeterministicProxyFactory**: Interface for deploying deterministic proxies, clones, and beacon proxies
 
 ### Creating a Deployment Script
 
@@ -31,10 +37,11 @@ Here's how to create a script for deterministic deployment across multiple chain
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-import { BaseCreate2Script } from "create2-helpers/BaseCreate2Script.sol";
+import { BaseCreate2Script } from "create2-helpers/src/BaseCreate2Script.sol";
 import { YourContract } from "../src/YourContract.sol";
 // if using a non-default network, you can configure their RPC urls using StdChains::setChain
 import { StdChains } from "forge-std/StdChains.sol";
+import { console2 } from "forge-std/console2.sol";
 
 contract DeployYourContract is BaseCreate2Script {
     function run() public {
@@ -45,11 +52,13 @@ contract DeployYourContract is BaseCreate2Script {
         );
         // Run on networks specified in the NETWORKS environment variable
         // Format: "mainnet,optimism,arbitrum_one"
-        runOnNetworks(this.deploy, vm.envString("NETWORKS", ","));
+        runOnNetworks(deploy, vm.envString("NETWORKS", ","));
     }
 
     function deploy() public returns (address) {
         // Create initialization code with constructor parameters if needed
+        // For contracts with constructor parameters, encode them:
+        // bytes memory initCode = abi.encodePacked(type(YourContract).creationCode, abi.encode(param1, param2));
         bytes memory initCode = abi.encodePacked(type(YourContract).creationCode);
 
         // Use the same salt across all chains for deterministic address
@@ -63,7 +72,7 @@ contract DeployYourContract is BaseCreate2Script {
 
         // if using multiple deployers, specify the deployer for the contract
         address deployedAddress3 = _create2IfNotDeployed(deployer, salt, initCode);
-        address deployedAddress4 = _immutableCreate2IfNotDeployed(salt, initCode);
+        address deployedAddress4 = _immutableCreate2IfNotDeployed(deployer, salt, initCode);
 
         console2.log("Deployed YourContract at:", deployedAddress);
         return deployedAddress;
@@ -153,3 +162,22 @@ address deployed2 = _createX3IfNotDeployed(broadcaster, value, salt88, creationC
 ```
 
 To pre-compute the expected address for CreateX CREATE3, `BaseCreate2Script` internally derives a guarded salt as `keccak256(abi.encode(broadcaster, bytes32(uint256(uint160(broadcaster)) << 96 | uint256(salt88))))` and queries `createX().computeCreate3Address(guardedSalt)`.
+
+#### Using DeterministicProxyFactory
+
+`BaseCreate2Script` provides helpers for deploying deterministic proxy contracts via the DeterministicProxyFactory. This factory supports deploying UUPS proxies, minimal clones, and beacon proxies with deterministic addresses.
+
+```solidity
+// Deploy a deterministic proxy if not already deployed
+address implementation = address(0x...); // Your implementation contract
+uint96 salt = 0x123; // Compact salt (first 20 bytes are derived from broadcaster)
+bytes memory callData = ""; // Optional initialization call data
+bytes memory immutableArgs = ""; // Optional immutable constructor arguments
+address deployed = _deployDeterministicProxyIfNotDeployed(implementation, salt, callData, immutableArgs);
+
+// You can also specify the broadcaster
+address broadcaster = deployer;
+address deployed2 = _deployDeterministicProxyIfNotDeployed(broadcaster, implementation, salt, callData, immutableArgs);
+```
+
+The DeterministicProxyFactory uses a guarded salt scheme: `bytes32(uint256(uint160(broadcaster)) << 96 | uint256(salt))`. This ensures that the salt is unique per broadcaster while allowing for compact `uint96` salt values.
