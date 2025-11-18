@@ -24,7 +24,7 @@ forge install emo-eth/create2-helpers
 ### Key Components
 
 1. **BaseCreate2Script**: A base script that provides utility functions for deterministic deployments across chains
-2. **Create2AddressHelper**: Helper functions for computing CREATE2 addresses
+2. **Create2Helpers**: Helper functions for computing CREATE2 addresses and deploying via CREATE2
 3. **ImmutableSalt**: A wrapper around bytes32 that helps work with the ImmutableCreate2Factory
 4. **Constants**: Predefined constants for CREATE2/CREATE3/CreateX/DeterministicProxy factories and deployment code
 5. **IDeterministicProxyFactory**: Interface for deploying deterministic proxies, clones, and beacon proxies
@@ -124,10 +124,10 @@ bytes32 salt = createBytes32ImmutableSalt(address(0), uint96(0x123));
 #### Computing CREATE2 Addresses
 
 ```solidity
-import { Create2AddressHelper } from "create2-helpers/src/Create2AddressHelper.sol";
+import { Create2Helpers } from "create2-helpers/src/Create2Helpers.sol";
 
 // Compute the address before deployment
-address expectedAddress = Create2AddressHelper.computeCreate2Address(
+address expectedAddress = Create2Helpers.computeCreate2Address(
     factory,
     salt,
     initCode

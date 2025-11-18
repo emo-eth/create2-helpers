@@ -99,10 +99,7 @@ interface ICreateX {
         pure
         returns (address computedAddress);
 
-    function computeCreate2Address(bytes32 salt, bytes32 initCodeHash)
-        external
-        view
-        returns (address computedAddress);
+    function computeCreate2Address(bytes32 salt, bytes32 initCodeHash) external view returns (address computedAddress);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           CREATE3                          */
